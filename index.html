@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Звезды на небе</title>
+    <link rel="stylesheet" href="styless.css">
+  </head>
+  <body>
+    <h1>NASA API</h1>
+    <div class="table-image left">
+      <!-- <img src="https://api.nasa.gov/planetary/apod?api_key=NfVLdSASKIdlRgGtZY9n21ZUPORudJWt9rbQFSnJ" alt="Изображение дня"> -->
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name of object</th>
+          <th>Date</th>
+          <th>Photo</th>
+          <th>Format</th>
+        </tr>
+      </thead>
+      <tbody id="starsTableBody">
+        <!-- Здесь будут добавляться строки с данными о звездах -->
+      </tbody>
+    </table>
+
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="starName"></h2>
+        <img id="starImage" src="" alt="">
+        <p>Taken date: <span id="starDistance"></span></p>
+        <p>File format: <span id="starType"></span></p>
+        <p id="starActivity"></p> <!-- новый элемент для отображения информации об активности -->
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
