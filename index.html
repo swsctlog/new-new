@@ -9,34 +9,53 @@
     <style>
         body {
             background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
 
-        .container {
-            margin-top: 50px;
+        .circle-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #000;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .circle-button:hover {
+            background-color: #333;
+        }
+
+        .circle-button:active {
+            background-color: #444;
         }
 
         .status {
             font-size: 1.5rem;
             font-weight: bold;
             color: #007bff;
+            position: absolute;
+            bottom: 20px;
         }
     </style>
 </head>
 
 <body>
     <div class="container text-center">
-        <h1 class="mb-4">Голосовой Ассистент</h1>
+        <div class="circle-button" id="startButton">Запуск</div>
         <p class="status" id="status">Подключение...</p>
         <div class="alert alert-info mt-4" id="output">
             Ожидаю команду...
-        </div>
-        <div class="mt-5">
-            <button class="btn btn-primary" id="startButton">Запустить распознавание</button>
-            <button class="btn btn-danger" id="stopButton">Остановить распознавание</button>
-        </div>
-        <div class="mt-4">
-            <input type="text" class="form-control w-50 d-inline-block" id="textInput" placeholder="Введите текст">
-            <button class="btn btn-success" id="submitButton">Отправить</button>
         </div>
     </div>
 
@@ -69,9 +88,6 @@
             const statusElement = document.getElementById('status');
             const outputElement = document.getElementById('output');
             const startButton = document.getElementById('startButton');
-            const stopButton = document.getElementById('stopButton');
-            const textInput = document.getElementById('textInput');
-            const submitButton = document.getElementById('submitButton');
 
             let isListening = false;
 
@@ -194,22 +210,16 @@
                 }
             }
 
-            // Обработчик кнопки отправки текста
-            submitButton.addEventListener('click', () => {
-                const textValue = textInput.value.trim();
-                if (textValue) {
-                    const isKeywordFound = checkForKeywords(textValue);
-                    if (!isKeywordFound) {
-                        alert(`Текст отправлен: ${textValue}`);
-                    }
+            // Обработчик кнопки запуска
+            startButton.addEventListener('click', () => {
+                if (!isListening) {
+                    startRecognition();
+                    startButton.textContent = "Остановить";
                 } else {
-                    alert('Введите текст перед отправкой!');
+                    stopRecognition();
+                    startButton.textContent = "Запуск";
                 }
             });
-
-            // Обработчики кнопок
-            startButton.addEventListener('click', startRecognition);
-            stopButton.addEventListener('click', stopRecognition);
         }
     </script>
 </body>
