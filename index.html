@@ -1,254 +1,130 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Голосовой Ассистент</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            flex-direction: column;
-        }
-
-        .circle-button {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background-color: #000;
-            color: #fff;
-            font-size: 20px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s ease;
-        }
-
-        .circle-button:hover {
-            background-color: #333;
-        }
-
-        .circle-button:active {
-            background-color: #444;
-        }
-
-        #status {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #007bff;
-            position: absolute;
-            bottom: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Сайт с голосовым помощником</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    .btn-start {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background-color: black;
+      color: white;
+      font-size: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+  </style>
 </head>
-
 <body>
-    <div class="circle-button" id="startButton">Запуск</div>
 
-    <script>
-        // Проверяем поддержку SpeechRecognition
-        if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-            alert('Ваш браузер не поддерживает SpeechRecognition. Попробуйте Google Chrome.');
-        } else {
-            // Ключевые слова и их голосовые ответы
-            const keywords = {
-                'ютуб': 'Да, СЭР, ищу на YouTube...',
-                'гугл': 'Да, СЭР, ищу в Google...',
-                'хром': 'Да, СЭР, открываю Google Chrome...',
-                'блумберг': 'Да, СЭР, открываю Bloomberg...',
-                'телеграм': 'Да, СЭР, открываю Telegram...'
-            };
+  <div class="btn-start" id="startBtn">Запуск</div>
 
-            // Инициализация SpeechRecognition
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'ru-RU';
-            recognition.interimResults = false;
-            recognition.continuous = true; // Непрерывное прослушивание
+  <script>
+    // Получаем элементы
+    const startBtn = document.getElementById('startBtn');
+    const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const speechSynthesis = window.speechSynthesis;
 
-            const startButton = document.getElementById('startButton');
+    let recognition;
+    let isRecognizing = false;
 
-            let isListening = false;
+    // Функция для начала/остановки распознавания
+    function startRecognition() {
+      recognition = new speechRecognition();
+      recognition.lang = 'ru-RU';
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
 
-            // Функция воспроизведения голоса
-            function speak(text) {
-                const synth = window.speechSynthesis;
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'ru-RU'; // Язык для воспроизведения
-                utterance.rate = 1; // Скорость речи
-                utterance.pitch = 1; // Тональность
-                utterance.volume = 1; // Громкость
+      recognition.onstart = () => {
+        isRecognizing = true;
+        console.log('Распознавание началось');
+      };
 
-                // Получаем список доступных голосов
-                const voices = synth.getVoices();
-                const preferredVoice = voices.find(voice =>
-                    voice.lang === 'ru-RU' && voice.name.includes('Google')
-                );
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        console.log('Распознанное: ', transcript);
+        processCommand(transcript);
+      };
 
-                if (preferredVoice) {
-                    utterance.voice = preferredVoice;
-                }
+      recognition.onerror = (event) => {
+        console.error('Ошибка распознавания: ', event.error);
+      };
 
-                // Проигрываем текст
-                synth.speak(utterance);
-            }
-
-            // Функция для поиска по YouTube
-            function searchYouTube(query) {
-                const searchQuery = encodeURIComponent(query);
-                window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
-            }
-
-            // Функция для поиска в Google
-            function searchGoogle(query) {
-                const searchQuery = encodeURIComponent(query);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            }
-
-            // Функция для открытия браузера
-            function openChrome() {
-                window.open("chrome://newtab");
-            }
-
-            // Функция для открытия Bloomberg
-            function openBloomberg() {
-                window.open("https://www.bloomberg.com");
-            }
-
-            // Функция для открытия Telegram
-            function openTelegram() {
-                window.open("https://web.telegram.org");
-            }
-
-            // Проверка текста на ключевые слова
-            function checkForKeywords(text) {
-                text = text.toLowerCase();
-                for (let keyword in keywords) {
-                    if (text.includes(keyword)) {
-                        speak(keywords[keyword]);
-
-                        // Поиск на YouTube
-                        if (keyword === 'ютуб') {
-                            setTimeout(() => {
-                                const searchQuery = text.replace("найди в ютубе", "").trim();
-                                searchYouTube(searchQuery);
-                            }, 3000); // Задержка перед поиском
-                        }
-                        // Поиск в Google
-                        else if (keyword === 'гугл') {
-                            setTimeout(() => {
-                                const searchQuery = text.replace("найди в гугл", "").trim();
-                                searchGoogle(searchQuery);
-                            }, 3000); // Задержка перед поиском
-                        }
-                        // Открытие Chrome
-                        else if (keyword === 'хром') {
-                            setTimeout(() => {
-                                openChrome();
-                            }, 3000);
-                        }
-                        // Открытие Bloomberg
-                        else if (keyword === 'блумберг') {
-                            setTimeout(() => {
-                                openBloomberg();
-                            }, 3000);
-                        }
-                        // Открытие Telegram
-                        else if (keyword === 'телеграм') {
-                            setTimeout(() => {
-                                openTelegram();
-                            }, 3000);
-                        }
-
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            // Функция для распознавания "Феликс"
-            function handleFelixCommand(text) {
-                if (text.includes("феликс")) {
-                    speak("Да, СЭР?");
-                    return true;
-                }
-                return false;
-            }
-
-            // Обработчик распознанной речи
-            recognition.onresult = (event) => {
-                const transcript = event.results[event.results.length - 1][0].transcript.trim();
-
-                // Обработка "Феликс"
-                if (!handleFelixCommand(transcript)) {
-                    // Проверка ключевых слов
-                    const isKeywordFound = checkForKeywords(transcript);
-                    if (!isKeywordFound) {
-                        speak("Я вас не понял, можете повторить СЭР?");
-                    }
-                }
-            };
-
-            // Обработчик ошибок
-            recognition.onerror = (event) => {
-                if (isListening) {
-                    restartRecognition();
-                }
-            };
-
-            // Перезапуск при остановке
-            recognition.onend = () => {
-                if (isListening) {
-                    restartRecognition();
-                }
-            };
-
-            // Функция запуска распознавания
-            function startRecognition() {
-                try {
-                    recognition.start();
-                    isListening = true;
-                } catch (error) {
-                    console.error('Ошибка при запуске:', error);
-                }
-            }
-
-            // Функция остановки распознавания
-            function stopRecognition() {
-                recognition.stop();
-                isListening = false;
-            }
-
-            // Перезапуск
-            function restartRecognition() {
-                console.log('Перезапуск распознавания...');
-                try {
-                    recognition.start();
-                } catch (error) {
-                    console.error('Ошибка при перезапуске:', error);
-                }
-            }
-
-            // Обработчик кнопки запуска
-            startButton.addEventListener('click', () => {
-                if (!isListening) {
-                    startRecognition();
-                    startButton.textContent = "Остановить";
-                } else {
-                    stopRecognition();
-                    startButton.textContent = "Запуск";
-                }
-            });
+      recognition.onend = () => {
+        if (isRecognizing) {
+          recognition.start(); // Продолжить распознавание
         }
-    </script>
-</body>
+      };
 
+      recognition.start();
+    }
+
+    // Функция для озвучивания ответов
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ru-RU';
+      utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === "Google русский") || speechSynthesis.getVoices()[0];
+      speechSynthesis.speak(utterance);
+    }
+
+    // Функция для обработки команд
+    function processCommand(command) {
+      if (command.includes('феликс')) {
+        const responses = [
+          "Да сэр",
+          "Я вас слушаю",
+          "Всё мое внимание у вас"
+        ];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        speak(response);
+      } else if (command.includes('ютуб')) {
+        window.open('https://www.youtube.com', '_blank');
+        speak("Открываю YouTube");
+      } else if (command.includes('гугл хром')) {
+        window.open('https://www.google.com/chrome/', '_blank');
+        speak("Открываю Google Chrome");
+      } else if (command.includes('блумберг')) {
+        window.open('https://www.bloomberg.com', '_blank');
+        speak("Открываю Bloomberg");
+      } else if (command.includes('инвестинг')) {
+        window.open('https://www.investing.com', '_blank');
+        speak("Открываю Investing.com");
+      } else if (command.includes('спасибо')) {
+        speak("Пожалуйста");
+      } else if (command.includes('ты молодец')) {
+        speak("Спасибо, рад помочь!");
+      } else if (command.includes('ты тупой') || command.includes('ты дебил')) {
+        const insults = [
+          "Очень жаль, что ты так думаешь.",
+          "Может, в следующий раз будешь более вежлив?",
+          "Ты мог бы быть добрее."
+        ];
+        const insultResponse = insults[Math.floor(Math.random() * insults.length)];
+        speak(insultResponse);
+      }
+    }
+
+    // Обработчик для кнопки
+    startBtn.addEventListener('click', () => {
+      if (!isRecognizing) {
+        startRecognition();
+      }
+    });
+
+  </script>
+
+</body>
 </html>
