@@ -41,24 +41,30 @@
     </div>
 
     <script>
+        // Проверяем поддержку SpeechRecognition
         if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
             alert('Ваш браузер не поддерживает SpeechRecognition. Попробуйте Google Chrome.');
         } else {
+            // Ключевые слова и их голосовые ответы
             const keywords = {
-                'ютуб': 'Открываю YouTube, сэр.',
-                'google': 'Открываю Google, сэр.',
-                'rutube': 'Открываю Rutube, сэр.',
-                'bloomberg': 'Открываю Bloomberg, сэр.',
-                'инвестиционные новости': 'Открываю Invest.com, сэр.',
-                'феликс': ['Да, сэр?', 'Я вас слушаю, сэр.', 'Что вам нужно, сэр?'],
-                'спасибо': ['Всегда пожалуйста, сэр.', 'Я рад, что смог помочь, сэр.'],
-                'молодец': 'Я рад, что помог, сэр!'
+                'свод': 'Открыл данные, сэр.',
+                'свот': 'Открыл анализ, сэр.',
+                'часовой': 'Открыл данные, сэр.',
+                'снип': 'Открыл данные, сэр.',
+                'разбивка': 'Открыл данные, сэр.',
+                'добыча': 'Открыл данные, сэр.',
+                'давление': 'Открыл данные, сэр.',
+                'мероприятие': 'Открыл данные, сэр.',
+                'феликс': 'Да, сэр?',
+                'спасибо': 'Всегда пожалуйста, сэр!',
+                'молодец': 'Я рад что помог, сэр!'
             };
 
+            // Инициализация SpeechRecognition
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'ru-RU';
             recognition.interimResults = false;
-            recognition.continuous = true;
+            recognition.continuous = true; // Непрерывное прослушивание
 
             const statusElement = document.getElementById('status');
             const outputElement = document.getElementById('output');
@@ -69,90 +75,141 @@
 
             let isListening = false;
 
+            // Функция воспроизведения голоса с настройкой параметров
             function speak(text) {
                 const synth = window.speechSynthesis;
                 const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ru-RU'; // Язык для воспроизведения
+                utterance.rate = 1; // Скорость речи
+                utterance.pitch = 1; // Тональность
+                utterance.volume = 1; // Громкость
 
-                utterance.lang = 'ru-RU';
-                utterance.rate = 0.9;
-                utterance.pitch = 0.8;
-                utterance.volume = 1;
-
+                // Получаем список доступных голосов
                 const voices = synth.getVoices();
                 const preferredVoice = voices.find(voice =>
-                    voice.lang === 'ru-RU' && (voice.name.includes('Google') || voice.name.includes('Microsoft'))
+                    voice.lang === 'ru-RU' && voice.name.includes('Google')
                 );
 
                 if (preferredVoice) {
                     utterance.voice = preferredVoice;
                 }
 
+                // Проигрываем текст
                 synth.speak(utterance);
             }
 
-            function debounce(func, delay) {
-                let timer;
-                return function (...args) {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => func.apply(this, args), delay);
-                };
+            // Функция для поиска по YouTube
+            function searchYouTube(query) {
+                const searchQuery = encodeURIComponent(query);
+                window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
             }
 
-            const processText = debounce((text) => {
+            // Функция для поиска в браузере
+            function searchBrowser(query) {
+                const searchQuery = encodeURIComponent(query);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            }
+
+            // Проверка текста на ключевые слова
+            function checkForKeywords(text) {
                 text = text.toLowerCase();
                 for (let keyword in keywords) {
                     if (text.includes(keyword)) {
-                        const response = Array.isArray(keywords[keyword])
-                            ? keywords[keyword][Math.floor(Math.random() * keywords[keyword].length)]
-                            : keywords[keyword];
+                        outputElement.textContent = `Ключевое слово найдено: ${text}`;
+                        statusElement.textContent = 'Ключевое слово найдено!';
+                        statusElement.style.color = 'green';
 
-                        outputElement.textContent = `Ключевое слово: ${keyword}`;
-                        speak(response);
+                        // Голосовой ответ
+                        speak(keywords[keyword]);
 
-                        if (keyword === 'ютуб') window.open('https://www.youtube.com', '_blank');
-                        if (keyword === 'google') window.open('https://www.google.com', '_blank');
-                        if (keyword === 'rutube') window.open('https://www.rutube.ru', '_blank');
-                        if (keyword === 'bloomberg') window.open('https://www.bloomberg.com', '_blank');
-                        if (keyword === 'инвестиционные новости') window.open('https://www.investing.com', '_blank');
-                        return;
+                        // Обработка ключевых слов для сайтов
+                        if (keyword.includes('ютуб') || keyword.includes('youtube')) {
+                            searchYouTube('программирование');
+                        } else if (keyword.includes('гугл') || keyword.includes('google')) {
+                            searchBrowser('инвестиционные новости');
+                        }
+
+                        return true;
                     }
                 }
-            }, 300);
+                return false;
+            }
 
+            // Обработчик распознанной речи
             recognition.onresult = (event) => {
                 const transcript = event.results[event.results.length - 1][0].transcript.trim();
                 outputElement.textContent = `Распознанный текст: ${transcript}`;
-                processText(transcript);
+                const isKeywordFound = checkForKeywords(transcript);
+                if (!isKeywordFound) {
+                    speak("Я вас не понял, можете повторить СЭР?");
+                }
             };
 
+            // Обработчик ошибок
             recognition.onerror = (event) => {
-                console.error(`Ошибка распознавания: ${event.error}`);
-                if (isListening) recognition.start();
+                outputElement.textContent = `Ошибка распознавания: ${event.error}`;
+                statusElement.textContent = 'Ошибка! Перезапуск...';
+                statusElement.style.color = 'red';
+
+                if (isListening) {
+                    restartRecognition();
+                }
             };
 
+            // Перезапуск при остановке
             recognition.onend = () => {
-                if (isListening) recognition.start();
+                if (isListening) {
+                    restartRecognition();
+                }
             };
 
-            startButton.addEventListener('click', () => {
-                recognition.start();
-                isListening = true;
-                statusElement.textContent = 'Слушаю...';
-                statusElement.style.color = '#007bff';
-            });
+            // Функция запуска распознавания
+            function startRecognition() {
+                try {
+                    recognition.start();
+                    isListening = true;
+                    statusElement.textContent = 'Слушаю...';
+                    statusElement.style.color = '#007bff';
+                } catch (error) {
+                    outputElement.textContent = `Ошибка запуска: ${error.message}`;
+                    statusElement.style.color = 'red';
+                }
+            }
 
-            stopButton.addEventListener('click', () => {
+            // Функция остановки распознавания
+            function stopRecognition() {
                 recognition.stop();
                 isListening = false;
                 statusElement.textContent = 'Распознавание остановлено.';
                 statusElement.style.color = 'red';
+            }
+
+            // Перезапуск
+            function restartRecognition() {
+                console.log('Перезапуск распознавания...');
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('Ошибка при перезапуске:', error);
+                }
+            }
+
+            // Обработчик кнопки отправки текста
+            submitButton.addEventListener('click', () => {
+                const textValue = textInput.value.trim();
+                if (textValue) {
+                    const isKeywordFound = checkForKeywords(textValue);
+                    if (!isKeywordFound) {
+                        alert(`Текст отправлен: ${textValue}`);
+                    }
+                } else {
+                    alert('Введите текст перед отправкой!');
+                }
             });
 
-            submitButton.addEventListener('click', () => {
-                const text = textInput.value.trim();
-                if (text) processText(text);
-                else alert('Введите текст перед отправкой!');
-            });
+            // Обработчики кнопок
+            startButton.addEventListener('click', startRecognition);
+            stopButton.addEventListener('click', stopRecognition);
         }
     </script>
 </body>
