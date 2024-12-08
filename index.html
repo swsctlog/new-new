@@ -47,6 +47,7 @@
 
     let recognition;
     let isRecognizing = false;
+    let isCommandExecuted = false;  // Флаг для предотвращения повторных команд
 
     // Функция для начала/остановки распознавания
     function startRecognition() {
@@ -65,7 +66,11 @@
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript.toLowerCase();
         console.log('Распознанное: ', transcript);
-        processCommand(transcript);
+        
+        if (!isCommandExecuted) {  // Проверка, была ли уже выполнена команда
+          processCommand(transcript);
+          isCommandExecuted = true;  // Устанавливаем флаг
+        }
       };
 
       recognition.onerror = (event) => {
@@ -102,6 +107,9 @@
 
     // Функция для обработки команд
     function processCommand(command) {
+      // Сброс флага после того, как команда была обработана
+      setTimeout(() => { isCommandExecuted = false; }, 1000); // Задержка, чтобы можно было снова выполнять команды через 1 секунду
+
       if (/феликс/i.test(command)) {
         const responses = [
           "Да сэр",
