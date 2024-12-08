@@ -14,6 +14,7 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            flex-direction: column;
         }
 
         .circle-button {
@@ -40,7 +41,7 @@
             background-color: #444;
         }
 
-        .status {
+        #status {
             font-size: 1.5rem;
             font-weight: bold;
             color: #007bff;
@@ -51,13 +52,7 @@
 </head>
 
 <body>
-    <div class="container text-center">
-        <div class="circle-button" id="startButton">Запуск</div>
-        <p class="status" id="status">Подключение...</p>
-        <div class="alert alert-info mt-4" id="output">
-            Ожидаю команду...
-        </div>
-    </div>
+    <div class="circle-button" id="startButton">Запуск</div>
 
     <script>
         // Проверяем поддержку SpeechRecognition
@@ -66,17 +61,11 @@
         } else {
             // Ключевые слова и их голосовые ответы
             const keywords = {
-                'свод': 'Открыл данные, сэр.',
-                'свот': 'Открыл анализ, сэр.',
-                'часовой': 'Открыл данные, сэр.',
-                'снип': 'Открыл данные, сэр.',
-                'разбивка': 'Открыл данные, сэр.',
-                'добыча': 'Открыл данные, сэр.',
-                'давление': 'Открыл данные, сэр.',
-                'мероприятие': 'Открыл данные, сэр.',
-                'феликс': 'Да, сэр?',
-                'спасибо': 'Всегда пожалуйста, сэр!',
-                'молодец': 'Я рад что помог, сэр!'
+                'ютуб': 'Да, СЭР, ищу на YouTube...',
+                'гугл': 'Да, СЭР, ищу в Google...',
+                'хром': 'Да, СЭР, открываю Google Chrome...',
+                'блумберг': 'Да, СЭР, открываю Bloomberg...',
+                'телеграм': 'Да, СЭР, открываю Telegram...'
             };
 
             // Инициализация SpeechRecognition
@@ -85,13 +74,11 @@
             recognition.interimResults = false;
             recognition.continuous = true; // Непрерывное прослушивание
 
-            const statusElement = document.getElementById('status');
-            const outputElement = document.getElementById('output');
             const startButton = document.getElementById('startButton');
 
             let isListening = false;
 
-            // Функция воспроизведения голоса с настройкой параметров
+            // Функция воспроизведения голоса
             function speak(text) {
                 const synth = window.speechSynthesis;
                 const utterance = new SpeechSynthesisUtterance(text);
@@ -120,10 +107,25 @@
                 window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
             }
 
-            // Функция для поиска в браузере
-            function searchBrowser(query) {
+            // Функция для поиска в Google
+            function searchGoogle(query) {
                 const searchQuery = encodeURIComponent(query);
                 window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            }
+
+            // Функция для открытия браузера
+            function openChrome() {
+                window.open("chrome://newtab");
+            }
+
+            // Функция для открытия Bloomberg
+            function openBloomberg() {
+                window.open("https://www.bloomberg.com");
+            }
+
+            // Функция для открытия Telegram
+            function openTelegram() {
+                window.open("https://web.telegram.org");
             }
 
             // Проверка текста на ключевые слова
@@ -131,18 +133,39 @@
                 text = text.toLowerCase();
                 for (let keyword in keywords) {
                     if (text.includes(keyword)) {
-                        outputElement.textContent = `Ключевое слово найдено: ${text}`;
-                        statusElement.textContent = 'Ключевое слово найдено!';
-                        statusElement.style.color = 'green';
-
-                        // Голосовой ответ
                         speak(keywords[keyword]);
 
-                        // Обработка ключевых слов для сайтов
-                        if (keyword.includes('ютуб') || keyword.includes('youtube')) {
-                            searchYouTube('программирование');
-                        } else if (keyword.includes('гугл') || keyword.includes('google')) {
-                            searchBrowser('инвестиционные новости');
+                        // Поиск на YouTube
+                        if (keyword === 'ютуб') {
+                            setTimeout(() => {
+                                const searchQuery = text.replace("найди в ютубе", "").trim();
+                                searchYouTube(searchQuery);
+                            }, 3000); // Задержка перед поиском
+                        }
+                        // Поиск в Google
+                        else if (keyword === 'гугл') {
+                            setTimeout(() => {
+                                const searchQuery = text.replace("найди в гугл", "").trim();
+                                searchGoogle(searchQuery);
+                            }, 3000); // Задержка перед поиском
+                        }
+                        // Открытие Chrome
+                        else if (keyword === 'хром') {
+                            setTimeout(() => {
+                                openChrome();
+                            }, 3000);
+                        }
+                        // Открытие Bloomberg
+                        else if (keyword === 'блумберг') {
+                            setTimeout(() => {
+                                openBloomberg();
+                            }, 3000);
+                        }
+                        // Открытие Telegram
+                        else if (keyword === 'телеграм') {
+                            setTimeout(() => {
+                                openTelegram();
+                            }, 3000);
                         }
 
                         return true;
@@ -154,7 +177,6 @@
             // Обработчик распознанной речи
             recognition.onresult = (event) => {
                 const transcript = event.results[event.results.length - 1][0].transcript.trim();
-                outputElement.textContent = `Распознанный текст: ${transcript}`;
                 const isKeywordFound = checkForKeywords(transcript);
                 if (!isKeywordFound) {
                     speak("Я вас не понял, можете повторить СЭР?");
@@ -163,10 +185,6 @@
 
             // Обработчик ошибок
             recognition.onerror = (event) => {
-                outputElement.textContent = `Ошибка распознавания: ${event.error}`;
-                statusElement.textContent = 'Ошибка! Перезапуск...';
-                statusElement.style.color = 'red';
-
                 if (isListening) {
                     restartRecognition();
                 }
@@ -184,11 +202,8 @@
                 try {
                     recognition.start();
                     isListening = true;
-                    statusElement.textContent = 'Слушаю...';
-                    statusElement.style.color = '#007bff';
                 } catch (error) {
-                    outputElement.textContent = `Ошибка запуска: ${error.message}`;
-                    statusElement.style.color = 'red';
+                    console.error('Ошибка при запуске:', error);
                 }
             }
 
@@ -196,8 +211,6 @@
             function stopRecognition() {
                 recognition.stop();
                 isListening = false;
-                statusElement.textContent = 'Распознавание остановлено.';
-                statusElement.style.color = 'red';
             }
 
             // Перезапуск
