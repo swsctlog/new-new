@@ -174,12 +174,26 @@
                 return false;
             }
 
+            // Функция для распознавания "Феликс"
+            function handleFelixCommand(text) {
+                if (text.includes("феликс")) {
+                    speak("Да, СЭР?");
+                    return true;
+                }
+                return false;
+            }
+
             // Обработчик распознанной речи
             recognition.onresult = (event) => {
                 const transcript = event.results[event.results.length - 1][0].transcript.trim();
-                const isKeywordFound = checkForKeywords(transcript);
-                if (!isKeywordFound) {
-                    speak("Я вас не понял, можете повторить СЭР?");
+
+                // Обработка "Феликс"
+                if (!handleFelixCommand(transcript)) {
+                    // Проверка ключевых слов
+                    const isKeywordFound = checkForKeywords(transcript);
+                    if (!isKeywordFound) {
+                        speak("Я вас не понял, можете повторить СЭР?");
+                    }
                 }
             };
 
