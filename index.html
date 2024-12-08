@@ -60,6 +60,7 @@
       recognition.lang = 'ru-RU';
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
+      recognition.continuous = true; // Это позволит продолжать слушать
 
       recognition.onstart = () => {
         isRecognizing = true;
@@ -87,12 +88,19 @@
           window.open('https://web.telegram.org', '_blank');
         }
 
-        // Проверка на команду "найди"
+        // Проверка на команду "найди" с продолжением запроса
         if (/(найди|поиск|ищи|поищи|найти)/i.test(transcript)) {
-          const searchQuery = transcript.replace(/найди|поиск|ищи|поищи|найти/i, '').trim();
-          if (searchQuery) {
-            const searchURL = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
-            window.open(searchURL, '_blank');
+          const remainingQuery = transcript.replace(/найди|поиск|ищи|поищи|найти/i, '').trim();
+          if (remainingQuery) {
+            // Проверка на "информацию о" или "информацию про"
+            if (/информацию (о|про)/i.test(remainingQuery)) {
+              const searchURL = `https://www.google.com/search?q=${encodeURIComponent(remainingQuery)}`;
+              window.open(searchURL, '_blank');
+            } else {
+              // Если просто обычный поиск
+              const searchURL = `https://www.google.com/search?q=${encodeURIComponent(remainingQuery)}`;
+              window.open(searchURL, '_blank');
+            }
           }
         }
       };
