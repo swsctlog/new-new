@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Сайт с голосовым помощником</title>
+  <title>Голосовое распознавание</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -13,6 +13,12 @@
       height: 100vh;
       margin: 0;
       background-color: #f0f0f0;
+      flex-direction: column;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #555;
     }
     .btn-start {
       width: 150px;
@@ -38,16 +44,15 @@
 <body>
 
   <div class="btn-start" id="startBtn">Запуск</div>
+  <div id="status">Ожидание команды...</div>
 
   <script>
-    // Получаем элементы
     const startBtn = document.getElementById('startBtn');
+    const status = document.getElementById('status');
     const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const speechSynthesis = window.speechSynthesis;
 
     let recognition;
     let isRecognizing = false;
-    let isCommandExecuted = false;  // Флаг для предотвращения повторных команд
 
     // Функция для начала/остановки распознавания
     function startRecognition() {
@@ -60,22 +65,26 @@
         isRecognizing = true;
         startBtn.classList.add('active');
         startBtn.textContent = 'Остановить';
+        status.textContent = 'Распознавание началось...';
         console.log('Распознавание началось');
       };
 
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript.toLowerCase();
         console.log('Распознанное: ', transcript);
-        
-        // Если команда не была выполнена, то обрабатываем её
-        if (!isCommandExecuted) {
-          processCommand(transcript);
-          isCommandExecuted = true;  // Устанавливаем флаг, чтобы команда не повторялась
-          
-          // Сброс флага через 1 секунду для возможности обработки новых команд
-          setTimeout(() => { 
-            isCommandExecuted = false; 
-          }, 1000);
+        status.textContent = `Распознанная команда: ${transcript}`;
+
+        // Проверка на ключевые фразы и открытие сайтов
+        if (/(ютуб|youtube|открой ютуб|открыть ютуб)/i.test(transcript)) {
+          window.open('https://www.youtube.com', '_blank');
+        } else if (/(гугл|google|открой google|открыть google)/i.test(transcript)) {
+          window.open('https://www.google.com', '_blank');
+        } else if (/(блумберг|blomberg|открой блумберг|открыть блумберг)/i.test(transcript)) {
+          window.open('https://www.bloomberg.com', '_blank');
+        } else if (/(инвестинг|investing|открой инвестинг|открыть инвестинг)/i.test(transcript)) {
+          window.open('https://www.investing.com', '_blank');
+        } else if (/(телеграм|telegram|открой телеграм|открыть телеграм)/i.test(transcript)) {
+          window.open('https://web.telegram.org', '_blank');
         }
       };
 
@@ -99,50 +108,8 @@
         isRecognizing = false;
         startBtn.classList.remove('active');
         startBtn.textContent = 'Запуск';
+        status.textContent = 'Распознавание остановлено.';
         console.log('Распознавание остановлено');
-      }
-    }
-
-    // Функция для озвучивания ответов
-    function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ru-RU';
-      utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === "Google русский") || speechSynthesis.getVoices()[0];
-      speechSynthesis.speak(utterance);
-    }
-
-    // Функция для обработки команд
-    function processCommand(command) {
-      if (/феликс/i.test(command)) {
-        const responses = [
-          "Да сэр",
-          "Я вас слушаю",
-          "Всё мое внимание у вас"
-        ];
-        const response = responses[Math.floor(Math.random() * responses.length)];
-        speak(response);
-      } else if (/(ютуб|youtube|открой ютуб|открыть ютуб|включи ютуб)/i.test(command)) {
-        window.open('https://www.youtube.com', '_blank');
-        speak("Открываю YouTube");
-      } else if (/(гугл хром|открой гугл хром|установить гугл хром)/i.test(command)) {
-        window.open('https://www.google.com/chrome/', '_blank');
-        speak("Открываю Google Chrome");
-      } else if (/(блумберг|новости блумберг|открой блумберг)/i.test(command)) {
-        window.open('https://www.bloomberg.com', '_blank');
-        speak("Открываю Bloomberg");
-      } else if (/(инвестинг|новости инвестинг|открой инвестинг)/i.test(command)) {
-        window.open('https://www.investing.com', '_blank');
-        speak("Открываю Investing.com");
-      } else if (/(спасибо|благодарю|ты молодец)/i.test(command)) {
-        speak("Пожалуйста, рад помочь!");
-      } else if (/(ты тупой|ты дебил|идиот|дурак)/i.test(command)) {
-        const insults = [
-          "Очень жаль, что ты так думаешь.",
-          "Может, в следующий раз будешь более вежлив?",
-          "Ты мог бы быть добрее."
-        ];
-        const insultResponse = insults[Math.floor(Math.random() * insults.length)];
-        speak(insultResponse);
       }
     }
 
@@ -154,7 +121,6 @@
         startRecognition(); // Если распознавание не активно, запускаем его
       }
     });
-
   </script>
 
 </body>
