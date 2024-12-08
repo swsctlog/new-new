@@ -82,7 +82,8 @@
 
     // Функция для обработки команд
     function processCommand(command) {
-      if (command.includes('феликс')) {
+      // Команды для "Феликс"
+      if (/феликс/i.test(command)) {
         const responses = [
           "Да сэр",
           "Я вас слушаю",
@@ -90,23 +91,33 @@
         ];
         const response = responses[Math.floor(Math.random() * responses.length)];
         speak(response);
-      } else if (command.includes('ютуб')) {
+      }
+      // Варианты для Ютуб
+      else if (/(ютуб|youtube|открой ютуб|открыть ютуб|включи ютуб)/i.test(command)) {
         window.open('https://www.youtube.com', '_blank');
         speak("Открываю YouTube");
-      } else if (command.includes('гугл хром')) {
+      }
+      // Варианты для Google Chrome
+      else if (/(гугл хром|открой гугл хром|установить гугл хром)/i.test(command)) {
         window.open('https://www.google.com/chrome/', '_blank');
         speak("Открываю Google Chrome");
-      } else if (command.includes('блумберг')) {
+      }
+      // Варианты для Bloomberg
+      else if (/(блумберг|новости блумберг|открой блумберг)/i.test(command)) {
         window.open('https://www.bloomberg.com', '_blank');
         speak("Открываю Bloomberg");
-      } else if (command.includes('инвестинг')) {
+      }
+      // Варианты для Investing.com
+      else if (/(инвестинг|новости инвестинг|открой инвестинг)/i.test(command)) {
         window.open('https://www.investing.com', '_blank');
         speak("Открываю Investing.com");
-      } else if (command.includes('спасибо')) {
-        speak("Пожалуйста");
-      } else if (command.includes('ты молодец')) {
-        speak("Спасибо, рад помочь!");
-      } else if (command.includes('ты тупой') || command.includes('ты дебил')) {
+      }
+      // Ответ на благодарности
+      else if (/(спасибо|благодарю|ты молодец)/i.test(command)) {
+        speak("Пожалуйста, рад помочь!");
+      }
+      // Ответ на оскорбления
+      else if (/(ты тупой|ты дебил|идиот|дурак)/i.test(command)) {
         const insults = [
           "Очень жаль, что ты так думаешь.",
           "Может, в следующий раз будешь более вежлив?",
