@@ -1,40 +1,200 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="ru">
+
+<head>
     <meta charset="UTF-8">
-    <title>Звезды на небе</title>
-    <link rel="stylesheet" href="styless.css">
-  </head>
-  <body>
-    <h1>NASA API (author: Axmadali)</h1>
-    <div class="table-image left">
-      <!-- <img src="https://api.nasa.gov/planetary/apod?api_key=NfVLdSASKIdlRgGtZY9n21ZUPORudJWt9rbQFSnJ" alt="Изображение дня"> -->
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Name of object</th>
-          <th>Date</th>
-          <th>Photo</th>
-          <th>Format</th>
-        </tr>
-      </thead>
-      <tbody id="starsTableBody">
-        <!-- Здесь будут добавляться строки с данными о звездах -->
-      </tbody>
-    </table>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Голосовой Ассистент</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
 
-    <div id="modal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2 id="starName"></h2>
-        <img id="starImage" src="" alt="">
-        <p>Taken date: <span id="starDistance"></span></p>
-        <p>File format: <span id="starType"></span></p>
-        <p id="starActivity"></p> <!-- новый элемент для отображения информации об активности -->
-      </div>
+        .container {
+            margin-top: 50px;
+        }
+
+        .status {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container text-center">
+        <h1 class="mb-4">Голосовой Ассистент</h1>
+        <p class="status" id="status">Подключение...</p>
+        <div class="alert alert-info mt-4" id="output">
+            Ожидаю команду...
+        </div>
+        <div class="mt-5">
+            <button class="btn btn-primary" id="startButton">Запустить распознавание</button>
+            <button class="btn btn-danger" id="stopButton">Остановить распознавание</button>
+        </div>
+        <div class="mt-4">
+            <input type="text" class="form-control w-50 d-inline-block" id="textInput" placeholder="Введите текст">
+            <button class="btn btn-success" id="submitButton">Отправить</button>
+        </div>
     </div>
 
-    <script src="script.js"></script>
-  </body>
+    <script>
+        if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+            alert('Ваш браузер не поддерживает SpeechRecognition. Попробуйте Google Chrome.');
+        } else {
+            const keywords = {
+                'ютуб': 'Открываю YouTube, сэр.',
+                'youtube': 'Открываю YouTube, сэр.',
+                'google': 'Открываю Google, сэр.',
+                'гугл': 'Открываю Google, сэр.',
+                'хром': 'Открываю Google Chrome, сэр.',
+                'рутуб': 'Открываю Rutube, сэр.',
+                'rutube': 'Открываю Rutube, сэр.',
+                'блумберг': 'Открываю Bloomberg, сэр.',
+                'bloomberg': 'Открываю Bloomberg, сэр.',
+                'инвест': 'Открываю Invest.com, сэр.',
+                'инвестиционные новости': 'Открываю Invest.com, сэр.',
+                'спасибо': ['Всегда пожалуйста, сэр.', 'Я рад, что смог помочь, сэр.', 'Не за что, сэр.'],
+                'молодец': 'Я рад, что помог, сэр!',
+                'феликс': ['Да, сэр?', 'Я вас слушаю, сэр.', 'Слушаю, сэр.']
+            };
+
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'ru-RU';
+            recognition.interimResults = false;
+            recognition.continuous = true;
+
+            const statusElement = document.getElementById('status');
+            const outputElement = document.getElementById('output');
+            const startButton = document.getElementById('startButton');
+            const stopButton = document.getElementById('stopButton');
+            const textInput = document.getElementById('textInput');
+            const submitButton = document.getElementById('submitButton');
+
+            let isListening = false;
+
+            function speak(text) {
+                const synth = window.speechSynthesis;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ru-RU';
+                utterance.rate = 1;
+                utterance.pitch = 1;
+                utterance.volume = 1;
+
+                const voices = synth.getVoices();
+                const preferredVoice = voices.find(voice =>
+                    voice.lang === 'ru-RU' && voice.name.includes('Google')
+                );
+
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                }
+
+                synth.speak(utterance);
+            }
+
+            function checkForKeywords(text) {
+                text = text.toLowerCase();
+                for (let keyword in keywords) {
+                    if (text.includes(keyword)) {
+                        outputElement.textContent = `Ключевое слово найдено: ${text}`;
+                        statusElement.textContent = 'Ключевое слово найдено!';
+                        statusElement.style.color = 'green';
+
+                        const response = keywords[keyword];
+                        const reply = Array.isArray(response)
+                            ? response[Math.floor(Math.random() * response.length)]
+                            : response;
+
+                        speak(reply);
+
+                        setTimeout(() => {
+                            if (keyword.includes('ютуб') || keyword.includes('youtube')) {
+                                window.open('https://www.youtube.com', '_blank');
+                            } else if (keyword.includes('google') || keyword.includes('гугл') || keyword.includes('хром')) {
+                                window.open('https://www.google.com', '_blank');
+                            } else if (keyword.includes('рутуб') || keyword.includes('rutube')) {
+                                window.open('https://rutube.ru', '_blank');
+                            } else if (keyword.includes('блумберг') || keyword.includes('bloomberg')) {
+                                window.open('https://www.bloomberg.com', '_blank');
+                            } else if (keyword.includes('инвест') || keyword.includes('инвестиционные новости')) {
+                                window.open('https://www.investing.com', '_blank');
+                            }
+                        }, 1500);
+
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[event.results.length - 1][0].transcript.trim();
+                outputElement.textContent = `Распознанный текст: ${transcript}`;
+                checkForKeywords(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                outputElement.textContent = `Ошибка распознавания: ${event.error}`;
+                statusElement.textContent = 'Ошибка! Перезапуск...';
+                statusElement.style.color = 'red';
+
+                if (isListening) {
+                    restartRecognition();
+                }
+            };
+
+            recognition.onend = () => {
+                if (isListening) {
+                    restartRecognition();
+                }
+            };
+
+            function startRecognition() {
+                try {
+                    recognition.start();
+                    isListening = true;
+                    statusElement.textContent = 'Слушаю...';
+                    statusElement.style.color = '#007bff';
+                } catch (error) {
+                    outputElement.textContent = `Ошибка запуска: ${error.message}`;
+                    statusElement.style.color = 'red';
+                }
+            }
+
+            function stopRecognition() {
+                recognition.stop();
+                isListening = false;
+                statusElement.textContent = 'Распознавание остановлено.';
+                statusElement.style.color = 'red';
+            }
+
+            function restartRecognition() {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('Ошибка при перезапуске:', error);
+                }
+            }
+
+            submitButton.addEventListener('click', () => {
+                const textValue = textInput.value.trim();
+                if (textValue) {
+                    const isKeywordFound = checkForKeywords(textValue);
+                    if (!isKeywordFound) {
+                        alert(`Текст отправлен: ${textValue}`);
+                    }
+                } else {
+                    alert('Введите текст перед отправкой!');
+                }
+            });
+
+            startButton.addEventListener('click', startRecognition);
+            stopButton.addEventListener('click', stopRecognition);
+        }
+    </script>
+</body>
+
 </html>
