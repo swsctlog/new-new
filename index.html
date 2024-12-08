@@ -58,9 +58,9 @@
     function startRecognition() {
       recognition = new speechRecognition();
       recognition.lang = 'ru-RU';
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-      recognition.continuous = true; // Это позволит продолжать слушать
+      recognition.interimResults = false; // Ожидаем завершения фразы
+      recognition.maxAlternatives = 1; // Максимум одна альтернатива
+      // recognition.continuous = true; // Убираем режим непрерывного прослушивания
 
       recognition.onstart = () => {
         isRecognizing = true;
@@ -107,11 +107,12 @@
 
       recognition.onerror = (event) => {
         console.error('Ошибка распознавания: ', event.error);
+        status.textContent = `Ошибка распознавания: ${event.error}`;
       };
 
       recognition.onend = () => {
         if (isRecognizing) {
-          recognition.start(); // Продолжить распознавание
+          recognition.start(); // Начинаем заново, если остановилось
         }
       };
 
