@@ -67,9 +67,15 @@
         const transcript = event.results[0][0].transcript.toLowerCase();
         console.log('Распознанное: ', transcript);
         
-        if (!isCommandExecuted) {  // Проверка, была ли уже выполнена команда
+        // Если команда не была выполнена, то обрабатываем её
+        if (!isCommandExecuted) {
           processCommand(transcript);
-          isCommandExecuted = true;  // Устанавливаем флаг
+          isCommandExecuted = true;  // Устанавливаем флаг, чтобы команда не повторялась
+          
+          // Сброс флага через 1 секунду для возможности обработки новых команд
+          setTimeout(() => { 
+            isCommandExecuted = false; 
+          }, 1000);
         }
       };
 
@@ -107,9 +113,6 @@
 
     // Функция для обработки команд
     function processCommand(command) {
-      // Сброс флага после того, как команда была обработана
-      setTimeout(() => { isCommandExecuted = false; }, 1000); // Задержка, чтобы можно было снова выполнять команды через 1 секунду
-
       if (/феликс/i.test(command)) {
         const responses = [
           "Да сэр",
