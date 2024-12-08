@@ -60,7 +60,6 @@
       recognition.lang = 'ru-RU';
       recognition.interimResults = false; // Ожидаем завершения фразы
       recognition.maxAlternatives = 1; // Максимум одна альтернатива
-      // recognition.continuous = true; // Убираем режим непрерывного прослушивания
 
       recognition.onstart = () => {
         isRecognizing = true;
@@ -103,6 +102,12 @@
             }
           }
         }
+
+        // После выполнения команды, сразу начинаем следующее распознавание
+        recognition.stop();
+        setTimeout(() => {
+          recognition.start(); // Перезапускаем распознавание для следующей команды
+        }, 500); // Небольшая задержка перед следующим распознаванием
       };
 
       recognition.onerror = (event) => {
