@@ -25,6 +25,13 @@
       justify-content: center;
       align-items: center;
       cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .btn-start:hover {
+      background-color: #333;
+    }
+    .btn-start.active {
+      background-color: #555;
     }
   </style>
 </head>
@@ -50,6 +57,8 @@
 
       recognition.onstart = () => {
         isRecognizing = true;
+        startBtn.classList.add('active');
+        startBtn.textContent = 'Остановить';
         console.log('Распознавание началось');
       };
 
@@ -72,6 +81,17 @@
       recognition.start();
     }
 
+    // Функция для остановки распознавания
+    function stopRecognition() {
+      if (recognition) {
+        recognition.stop();
+        isRecognizing = false;
+        startBtn.classList.remove('active');
+        startBtn.textContent = 'Запуск';
+        console.log('Распознавание остановлено');
+      }
+    }
+
     // Функция для озвучивания ответов
     function speak(text) {
       const utterance = new SpeechSynthesisUtterance(text);
@@ -82,7 +102,6 @@
 
     // Функция для обработки команд
     function processCommand(command) {
-      // Команды для "Феликс"
       if (/феликс/i.test(command)) {
         const responses = [
           "Да сэр",
@@ -91,33 +110,21 @@
         ];
         const response = responses[Math.floor(Math.random() * responses.length)];
         speak(response);
-      }
-      // Варианты для Ютуб
-      else if (/(ютуб|youtube|открой ютуб|открыть ютуб|включи ютуб)/i.test(command)) {
+      } else if (/(ютуб|youtube|открой ютуб|открыть ютуб|включи ютуб)/i.test(command)) {
         window.open('https://www.youtube.com', '_blank');
         speak("Открываю YouTube");
-      }
-      // Варианты для Google Chrome
-      else if (/(гугл хром|открой гугл хром|установить гугл хром)/i.test(command)) {
+      } else if (/(гугл хром|открой гугл хром|установить гугл хром)/i.test(command)) {
         window.open('https://www.google.com/chrome/', '_blank');
         speak("Открываю Google Chrome");
-      }
-      // Варианты для Bloomberg
-      else if (/(блумберг|новости блумберг|открой блумберг)/i.test(command)) {
+      } else if (/(блумберг|новости блумберг|открой блумберг)/i.test(command)) {
         window.open('https://www.bloomberg.com', '_blank');
         speak("Открываю Bloomberg");
-      }
-      // Варианты для Investing.com
-      else if (/(инвестинг|новости инвестинг|открой инвестинг)/i.test(command)) {
+      } else if (/(инвестинг|новости инвестинг|открой инвестинг)/i.test(command)) {
         window.open('https://www.investing.com', '_blank');
         speak("Открываю Investing.com");
-      }
-      // Ответ на благодарности
-      else if (/(спасибо|благодарю|ты молодец)/i.test(command)) {
+      } else if (/(спасибо|благодарю|ты молодец)/i.test(command)) {
         speak("Пожалуйста, рад помочь!");
-      }
-      // Ответ на оскорбления
-      else if (/(ты тупой|ты дебил|идиот|дурак)/i.test(command)) {
+      } else if (/(ты тупой|ты дебил|идиот|дурак)/i.test(command)) {
         const insults = [
           "Очень жаль, что ты так думаешь.",
           "Может, в следующий раз будешь более вежлив?",
@@ -130,8 +137,10 @@
 
     // Обработчик для кнопки
     startBtn.addEventListener('click', () => {
-      if (!isRecognizing) {
-        startRecognition();
+      if (isRecognizing) {
+        stopRecognition(); // Если распознавание активно, останавливаем его
+      } else {
+        startRecognition(); // Если распознавание не активно, запускаем его
       }
     });
 
