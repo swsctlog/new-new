@@ -75,9 +75,9 @@
         status.textContent = `Распознанная команда: ${transcript}`;
 
         // Проверка на ключевые фразы и открытие сайтов
-        if (/(ютуб|youtube|открой ютуб|открыть ютуб)/i.test(transcript)) {
+        if (/(ютуб|youtube|открой ютуб|открыть ютуб|включи ютуб|youtube.com)/i.test(transcript)) {
           window.open('https://www.youtube.com', '_blank');
-        } else if (/(гугл|google|открой google|открыть google)/i.test(transcript)) {
+        } else if (/(гугл|google|открой google|открыть google|поиск google)/i.test(transcript)) {
           window.open('https://www.google.com', '_blank');
         } else if (/(блумберг|blomberg|открой блумберг|открыть блумберг)/i.test(transcript)) {
           window.open('https://www.bloomberg.com', '_blank');
@@ -85,6 +85,15 @@
           window.open('https://www.investing.com', '_blank');
         } else if (/(телеграм|telegram|открой телеграм|открыть телеграм)/i.test(transcript)) {
           window.open('https://web.telegram.org', '_blank');
+        }
+
+        // Проверка на команду "найди"
+        if (/(найди|поиск|ищи|поищи|найти)/i.test(transcript)) {
+          const searchQuery = transcript.replace(/найди|поиск|ищи|поищи|найти/i, '').trim();
+          if (searchQuery) {
+            const searchURL = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+            window.open(searchURL, '_blank');
+          }
         }
       };
 
