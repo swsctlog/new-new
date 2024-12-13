@@ -55,7 +55,6 @@
     let isRecognizing = false;
     let synth = window.speechSynthesis; // Объект для синтеза речи
     let currentUtterance = null; // Текущий синтез речи
-    let isReading = false; // Флаг для чтения страницы
 
     // Функция для получения более естественного голоса
     function getNaturalVoice() {
@@ -112,7 +111,7 @@
             "Внимательно слушаю",
             "Да, сэр"
           ];
-          speak(responses[Math.floor(Math.random() * responses.length)]);
+          speak(responses[Math.floor(Math.random() * responses.length)]); // случайный ответ
         }
 
         // Команда "Спасибо"
@@ -182,20 +181,9 @@
           }
         }
 
-        // Команда "Прочитай"
-        if (/прочитай/i.test(transcript) && !isReading) {
-          isReading = true;
-          readPage();
-        }
-
-        // Команда "Перестань читать"
-        if (/перестань читать/i.test(transcript) && isReading) {
-          stopReading();
-        }
-
         // Команда "Закрой вкладку"
         if (/закрой вкладку/i.test(transcript)) {
-          window.close();
+          speak("Не могу закрыть вкладку автоматически. Пожалуйста, закройте её вручную.");
         }
 
         recognition.stop();
@@ -225,19 +213,6 @@
         status.textContent = 'Распознавание остановлено.';
         console.log('Распознавание остановлено');
       }
-    }
-
-    // Функция для чтения текста страницы
-    function readPage() {
-      const text = document.body.innerText; // Извлекаем чистый текст
-      speak(text);
-    }
-
-    // Функция для остановки чтения текста
-    function stopReading() {
-      synth.cancel();
-      isReading = false;
-      speak("Хорошо сэр");
     }
 
     // Обработчик для кнопки
