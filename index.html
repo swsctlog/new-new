@@ -56,15 +56,16 @@
     let synth = window.speechSynthesis; // Объект для синтеза речи
     let currentUtterance = null; // Текущий синтез речи
 
-    // Функция для получения более естественного голоса
-    function getNaturalVoice() {
+    // Функция для получения более естественного мужского голоса
+    function getNaturalMaleVoice() {
       const voices = synth.getVoices();
-      // Попробуем найти русский голос, если он есть
-      const russianVoice = voices.find(voice => voice.lang === 'ru-RU');
-      if (russianVoice) {
-        return russianVoice;
+      // Попытаемся выбрать мужской голос с русским языком, если он есть
+      const maleVoice = voices.find(voice => voice.lang === 'ru-RU' && voice.name.toLowerCase().includes('male'));
+      if (maleVoice) {
+        return maleVoice;
       } else {
-        return voices[0]; // Если русского нет, вернем первый доступный голос
+        // Если нет мужского русского голоса, попробуем выбрать первый доступный голос
+        return voices.find(voice => voice.lang === 'ru-RU') || voices[0]; // Вернем первый доступный голос
       }
     }
 
@@ -75,7 +76,7 @@
       }
 
       currentUtterance = new SpeechSynthesisUtterance(text);
-      currentUtterance.voice = getNaturalVoice();
+      currentUtterance.voice = getNaturalMaleVoice();
       currentUtterance.lang = "ru-RU";
       currentUtterance.rate = 1; // Скорость речи (нормальная скорость)
       currentUtterance.pitch = 1; // Высота голоса (нейтральная)
