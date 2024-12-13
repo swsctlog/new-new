@@ -53,12 +53,29 @@
 
     let recognition;
     let isRecognizing = false;
+    let synth = window.speechSynthesis; // Объект для синтеза речи
 
-    // Функция для синтеза речи
+    // Функция для получения более естественного голоса
+    function getNaturalVoice() {
+      const voices = synth.getVoices();
+      // Попробуем найти русский голос, если он есть
+      const russianVoice = voices.find(voice => voice.lang === 'ru-RU');
+      if (russianVoice) {
+        return russianVoice;
+      } else {
+        // Если нет русского голоса, вернем первый доступный
+        return voices[0];
+      }
+    }
+
+    // Функция для синтеза речи с улучшениями
     function speak(text) {
       const speech = new SpeechSynthesisUtterance(text);
+      speech.voice = getNaturalVoice(); // Выбираем голос
       speech.lang = "ru-RU";
-      speechSynthesis.speak(speech);
+      speech.rate = 1; // Скорость речи (нормальная скорость)
+      speech.pitch = 1; // Высота голоса (нейтральная)
+      synth.speak(speech);
     }
 
     // Функция для начала/остановки распознавания
