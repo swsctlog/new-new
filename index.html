@@ -50,10 +50,12 @@
     const startBtn = document.getElementById('startBtn');
     const status = document.getElementById('status');
     const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
+    
     let recognition;
     let isRecognizing = false;
     let synth = window.speechSynthesis; // Объект для синтеза речи
+    let currentUtterance = null; // Текущий синтез речи
+    let isReading = false; // Флаг для чтения страницы
 
     // Функция для получения более естественного голоса
     function getNaturalVoice() {
@@ -63,35 +65,31 @@
       if (russianVoice) {
         return russianVoice;
       } else {
-        // Если нет русского голоса, вернем первый доступный
-        return voices[0];
+        return voices[0]; // Если русского нет, вернем первый доступный голос
       }
     }
 
     // Функция для синтеза речи с улучшениями
     function speak(text) {
-      const speech = new SpeechSynthesisUtterance(text);
-      speech.voice = getNaturalVoice(); // Выбираем голос
-      speech.lang = "ru-RU";
-      speech.rate = 1; // Скорость речи (нормальная скорость)
-      speech.pitch = 1; // Высота голоса (нейтральная)
-      synth.speak(speech);
-      
-      // Останавливаем распознавание речи, чтобы избежать его повторного срабатывания
-      stopRecognition();
+      if (currentUtterance && currentUtterance instanceof SpeechSynthesisUtterance) {
+        synth.cancel(); // Прерываем текущий синтез речи, если он идет
+      }
 
-      // Когда речь заканчивается, восстанавливаем распознавание
-      speech.onend = () => {
-        startRecognition(); // Возвращаем распознавание после паузы
-      };
+      currentUtterance = new SpeechSynthesisUtterance(text);
+      currentUtterance.voice = getNaturalVoice();
+      currentUtterance.lang = "ru-RU";
+      currentUtterance.rate = 1; // Скорость речи (нормальная скорость)
+      currentUtterance.pitch = 1; // Высота голоса (нейтральная)
+
+      synth.speak(currentUtterance);
     }
 
     // Функция для начала/остановки распознавания
     function startRecognition() {
       recognition = new speechRecognition();
       recognition.lang = 'ru-RU';
-      recognition.interimResults = false; // Ожидаем завершения фразы
-      recognition.maxAlternatives = 1; // Максимум одна альтернатива
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
 
       recognition.onstart = () => {
         isRecognizing = true;
@@ -106,7 +104,7 @@
         console.log('Распознанное: ', transcript);
         status.textContent = `Распознанная команда: ${transcript}`;
 
-        // Вариативные ответы на команду "Феликс"
+        // Команда "Феликс"
         if (/феликс/i.test(transcript)) {
           const responses = [
             "Я вас слушаю, сэр",
@@ -117,7 +115,7 @@
           speak(responses[Math.floor(Math.random() * responses.length)]);
         }
 
-        // Ответ на команду "спасибо"
+        // Команда "Спасибо"
         if (/спасибо/i.test(transcript)) {
           const thankYouResponses = [
             "Всегда пожалуйста, сэр",
@@ -127,7 +125,7 @@
           speak(thankYouResponses[Math.floor(Math.random() * thankYouResponses.length)]);
         }
 
-        // Проверка на команду "открой"
+        // Команда "Открой"
         if (/(открой)/i.test(transcript)) {
           const site = transcript.replace(/открой/i, '').trim();
           if (site) {
@@ -164,7 +162,7 @@
           }
         }
 
-        // Проверка на команду "найди"
+        // Команда "Найди"
         if (/(найди|поиск|ищи|поищи|найти)/i.test(transcript)) {
           const remainingQuery = transcript.replace(/найди|поиск|ищи|поищи|найти/i, '').trim();
           if (remainingQuery) {
@@ -174,7 +172,7 @@
           }
         }
 
-        // Проверка на команду "видео"
+        // Команда "Видео"
         if (/(видео|поищи видео|найди видео|открой видео)/i.test(transcript)) {
           const videoQuery = transcript.replace(/видео|поищи видео|найди видео|открой видео/i, '').trim();
           if (videoQuery) {
@@ -184,7 +182,22 @@
           }
         }
 
-        // После выполнения команды, сразу начинаем следующее распознавание
+        // Команда "Прочитай"
+        if (/прочитай/i.test(transcript) && !isReading) {
+          isReading = true;
+          readPage();
+        }
+
+        // Команда "Перестань читать"
+        if (/перестань читать/i.test(transcript) && isReading) {
+          stopReading();
+        }
+
+        // Команда "Закрой вкладку"
+        if (/закрой вкладку/i.test(transcript)) {
+          window.close();
+        }
+
         recognition.stop();
       };
 
@@ -195,7 +208,7 @@
 
       recognition.onend = () => {
         if (isRecognizing) {
-          recognition.start(); // Начинаем заново, если остановилось
+          recognition.start();
         }
       };
 
@@ -214,12 +227,25 @@
       }
     }
 
+    // Функция для чтения текста страницы
+    function readPage() {
+      const text = document.body.innerText; // Извлекаем чистый текст
+      speak(text);
+    }
+
+    // Функция для остановки чтения текста
+    function stopReading() {
+      synth.cancel();
+      isReading = false;
+      speak("Хорошо сэр");
+    }
+
     // Обработчик для кнопки
     startBtn.addEventListener('click', () => {
       if (isRecognizing) {
-        stopRecognition(); // Если распознавание активно, останавливаем его
+        stopRecognition();
       } else {
-        startRecognition(); // Если распознавание не активно, запускаем его
+        startRecognition();
       }
     });
   </script>
