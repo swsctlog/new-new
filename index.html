@@ -53,6 +53,7 @@
     
     let recognition;
     let isRecognizing = false;
+    let isSearchingVideo = false; // Флаг для предотвращения многократного поиска видео
     let synth = window.speechSynthesis; // Объект для синтеза речи
     let currentUtterance = null; // Текущий синтез речи
 
@@ -173,12 +174,18 @@
         }
 
         // Команда "Видео"
-        if (/(видео|поищи видео|найди видео|открой видео)/i.test(transcript)) {
-          const videoQuery = transcript.replace(/видео|поищи видео|найди видео|открой видео/i, '').trim();
-          if (videoQuery) {
+        if (/(видео|поиск видео|найди видео|поищи видео|открой видео)/i.test(transcript)) {
+          const videoQuery = transcript.replace(/видео|поиск видео|найди видео|поищи видео|открой видео/i, '').trim();
+
+          if (videoQuery && !isSearchingVideo) { // Проверяем, что поиск видео ещё не начат
+            isSearchingVideo = true; // Устанавливаем флаг, чтобы предотвратить повторный поиск
             const youtubeURL = `https://www.youtube.com/results?search_query=${encodeURIComponent(videoQuery)}`;
             window.open(youtubeURL, '_blank');
             speak(`Вот актуальные видеоролики на тему ${videoQuery}`);
+
+            recognition.stop(); // Останавливаем распознавание, чтобы избежать повторного выполнения
+          } else if (!videoQuery) {
+            speak("Пожалуйста, уточните запрос для поиска видео.");
           }
         }
 
@@ -199,6 +206,7 @@
         if (isRecognizing) {
           recognition.start();
         }
+        isSearchingVideo = false; // Разрешаем новый поиск видео после завершения распознавания
       };
 
       recognition.start();
