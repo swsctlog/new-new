@@ -177,7 +177,7 @@
           if (remainingQuery) {
             const searchURL = `https://www.google.com/search?q=${encodeURIComponent(remainingQuery)}`;
             window.open(searchURL, '_blank');
-            speak(`Нашел актуальную информацию про ${remainingQuery}`);
+            speak(`Нашел информацию про ${remainingQuery}`);
           }
         }
 
@@ -189,7 +189,7 @@
             isSearchingVideo = true; // Устанавливаем флаг, чтобы предотвратить повторный поиск
             const youtubeURL = `https://www.youtube.com/results?search_query=${encodeURIComponent(videoQuery)}`;
             window.open(youtubeURL, '_blank');
-            speak(`Вот актуальные видеоролики на тему ${videoQuery}`);
+            speak(`Нашёл данную информацию по вашему запросу ${videoQuery}`);
 
             recognition.stop(); // Останавливаем распознавание, чтобы избежать повторного выполнения
           } else if (!videoQuery) {
